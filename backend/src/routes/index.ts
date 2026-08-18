@@ -29,14 +29,39 @@ router.use('/tracker', trackerRoutes);
 router.use('/verify', verifyRoutes);
 router.use('/admin', adminRoutes);
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'Protein Villa API',
-    version: '1.0.0',
-  });
+// Health check endpoint with Database Ping & Telemetry
+router.get('/health', async (req, res) => {
+  try {
+    const dbStartTime = Date.now();
+    await prisma.$queryRaw`SELECT 1`;
+    const dbLatencyMs = Date.now() - dbStartTime;
+
+    res.json({
+      status: 'healthy',
+      database: {
+        status: 'connected',
+        latencyMs: `${dbLatencyMs}ms`,
+      },
+      timestamp: new Date().toISOString(),
+      service: 'Protein Villa API',
+      version: '1.0.0',
+      uptimeSeconds: Math.floor(process.uptime()),
+      memory: {
+        rssMb: Math.round(process.memoryUsage().rss / 1024 / 1024),
+        heapUsedMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      },
+    });
+  } catch (error: any) {
+    res.status(503).json({
+      status: 'degraded',
+      database: {
+        status: 'disconnected',
+        error: error.message,
+      },
+      timestamp: new Date().toISOString(),
+      service: 'Protein Villa API',
+    });
+  }
 });
 
 export default router;

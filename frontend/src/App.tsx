@@ -10,6 +10,7 @@ import { CompareProvider } from './context/CompareContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { ScrollToTop } from './components/common/ScrollToTop';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { ComparisonDrawer } from './components/product/ComparisonDrawer';
 
@@ -69,12 +70,13 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 export const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <CompareProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <CompareProvider>
                 <BrowserRouter>
                   <ScrollToTop />
                   <div className="flex flex-col min-h-screen bg-white dark:bg-[#070a0f] text-gray-900 dark:text-gray-100 transition-colors">
@@ -181,6 +183,7 @@ export const App: React.FC = () => {
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
+  </ErrorBoundary>
   );
 };
 
