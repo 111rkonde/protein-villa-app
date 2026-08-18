@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: protein-villa-config
+  namespace: protein-villa
+  labels:
+    app: protein-villa
+data:
+  NODE_ENV: "production"
+  PORT: "5000"
+  CORS_ORIGIN: "https://devopswithyogesh.online,https://www.devopswithyogesh.online,http://localhost:5173,http://localhost:3000"
+  LOG_LEVEL: "info"
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX: "200"
+  VITE_API_URL: "/api"
+  APP_NAME: "Protein Villa"
+  FREE_SHIPPING_THRESHOLD: "999"
+  DOMAIN_NAME: "devopswithyogesh.online"

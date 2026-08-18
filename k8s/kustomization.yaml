@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: protein-villa
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - persistent-volume.yaml
+  - backend-deployment.yaml
+  - frontend-deployment.yaml
+  - hpa.yaml
+  - ingress.yaml
