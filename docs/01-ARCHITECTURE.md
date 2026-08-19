@@ -1,26 +1,31 @@
-graph TD
+flowchart TD
 
-    subgraph T1["Tier 1: Presentation Layer"]
-        A["React 18 + TypeScript + Vite"]
-        B["Tailwind CSS + Dark/Light Theme"]
-        C["Three.js + React Three Fiber 3D Product Canvas"]
-        D["Recharts Analytics + Canvas Confetti"]
-        E["Context Providers: Auth, Cart, Wishlist, Compare, Toast"]
-    end
+    A["Frontend<br/>React + TypeScript + Vite"]
+    B["UI and State Management<br/>Tailwind CSS, Context API"]
+    C["3D Product Visuals<br/>Three.js + React Three Fiber"]
 
-    subgraph T2["Tier 2: Application and API Layer"]
-        F["Node.js + Express.js + TypeScript"]
-        G["Middleware: Rate Limiter, Helmet, CORS, Error Handler"]
-        H["Security: JWT Authentication and RBAC Guards"]
-        I["Validation: Zod Schema Validators"]
-        J["Controllers and Business Logic Services"]
-    end
+    D["Backend API<br/>Node.js + Express.js + TypeScript"]
+    E["Security and Validation<br/>JWT, RBAC, Zod, Helmet, CORS"]
+    F["Business Logic<br/>Controllers and Services"]
 
-    subgraph T3["Tier 3: Data and Persistence Layer"]
-        K["Prisma ORM Client"]
-        L["Relational Database Schema: 16 Models"]
-        M[("SQLite Local / PostgreSQL Production")]
-    end
+    G["Database Layer<br/>Prisma ORM"]
+    H[("Database<br/>SQLite or PostgreSQL")]
 
-    T1 -->|"HTTPS / REST API / JSON"| T2
-    T2 -->|"Type-Safe Prisma Queries"| T3
+    A --> B
+    B --> C
+    C --> D
+
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+
+    U["User / Customer"] --> A
+
+    classDef frontend fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef backend fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef database fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+
+    class A,B,C frontend
+    class D,E,F backend
+    class G,H database
