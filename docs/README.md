@@ -17,6 +17,8 @@ Welcome to the comprehensive documentation suite for **Protein Villa**, a produc
 | [**7. Testing & CI/CD Pipeline**](./07-TESTING-AND-CI-CD.md) | Automated Vitest test suites, build validation, and Jenkins/GitHub Actions | QA, DevOps |
 | [**8. AWS Cloud Deployment**](./08-AWS-DEPLOYMENT.md) | Production deployment on AWS EKS, ECS Fargate, RDS PostgreSQL, CloudFront, ECR | Cloud Engineers, DevOps |
 | [**9. Request Traffic Flow & Domain Routing**](./09-REQUEST-TRAFFIC-FLOW.md) | How traffic travels from `devopswithyogesh.online` to Services & Pods | Network, DevOps, Architects |
+| [**10. Terraform Production Guide**](./10-TERRAFORM-PRODUCTION-GUIDE.md) | Production checklist, variable modifications, and AWS infrastructure rollout | DevOps, Cloud Engineers |
+| [**11. Admin Bank & UPI Config Guide**](./11-ADMIN-BANK-AND-UPI-PAYMENT-CONFIG.md) | Where & how to input Bank details & UPI VPAs for direct bank account receipt | Store Owners, Admins, Finance |
 
 ---
 
@@ -27,7 +29,7 @@ Welcome to the comprehensive documentation suite for **Protein Villa**, a produc
 * **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Three.js / React Three Fiber
 * **Backend:** Node.js, Express.js, TypeScript, Zod, JWT
 * **Database:** Prisma ORM, SQLite (local) / PostgreSQL (production ready)
-* **DevOps:** Docker Multi-stage, Docker Compose, Kubernetes manifests (`k8s/`)
+* **DevOps:** Docker Multi-stage, Docker Compose, Kubernetes manifests (`k8s/`), Terraform AWS IaC (`terraform/`)
 
 ---
 

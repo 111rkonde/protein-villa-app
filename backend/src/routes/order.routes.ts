@@ -6,8 +6,8 @@ import { createOrderSchema, updateOrderStatusSchema } from '../validators/order.
 
 const router = Router();
 
-// Checkout / Place Order (Guests or Authenticated Users)
-router.post('/', optionalAuth, validateRequest(createOrderSchema), OrderController.createOrder);
+// Checkout / Place Order (Authenticated Users ONLY)
+router.post('/', authenticateUser, validateRequest(createOrderSchema), OrderController.createOrder);
 
 // Order tracking (Public with orderNumber / trackingNumber)
 router.get('/track/:orderNumber', OrderController.trackOrder);

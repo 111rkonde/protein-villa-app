@@ -19,6 +19,9 @@ import {
   LayoutDashboard,
   Package,
   Calendar,
+  Building,
+  KeyRound,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -28,7 +31,7 @@ import { productService } from '../../services/product.service';
 import { Product } from '../../types';
 
 export const Navbar: React.FC = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, login, logout } = useAuth();
   const { openCart, itemCount: cartCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
   const { theme, toggleTheme } = useTheme();
@@ -95,26 +98,24 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-[#0a0d12]/90 backdrop-blur-xl border-b border-gray-200 dark:border-slate-800 transition-colors duration-200">
       {/* Top Banner Notice */}
-      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-black dark:text-black font-semibold text-xs py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-3">
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-black dark:text-black font-bold text-[10px] sm:text-xs py-1 px-2 sm:px-4 text-center tracking-wide flex items-center justify-center gap-2">
         <span>⚡ 100% Authentic HPLC Lab-Tested Supplements</span>
-        <span className="hidden md:inline">•</span>
-        <span className="hidden md:inline">🚚 FREE Shipping on orders over ₹999</span>
-        <span className="hidden md:inline">•</span>
-        <span className="hidden sm:inline">Use Code <strong>WELCOME10</strong> for 10% OFF</span>
+        <span className="hidden sm:inline">• Free Shipping &gt; ₹999</span>
+        <span className="hidden md:inline">• Code: <strong>WELCOME10</strong></span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-black shadow-neon group-hover:scale-105 transition-transform">
-              <Dumbbell className="w-6 h-6 transform -rotate-45" />
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-black shadow-neon group-hover:scale-105 transition-transform">
+              <Dumbbell className="w-4 h-4 sm:w-6 sm:h-6 transform -rotate-45" />
             </div>
             <div className="flex flex-col">
-              <span className="font-display text-xl sm:text-2xl font-black tracking-wider text-gray-900 dark:text-white flex items-center gap-1">
+              <span className="font-display text-base sm:text-2xl font-black tracking-wider text-gray-900 dark:text-white flex items-center gap-0.5 sm:gap-1">
                 PROTEIN<span className="text-brand-500">VILLA</span>
               </span>
-              <span className="text-[10px] tracking-widest text-gray-500 dark:text-gray-400 font-bold uppercase -mt-1">
+              <span className="text-[8px] sm:text-[10px] tracking-widest text-gray-500 dark:text-gray-400 font-bold uppercase -mt-1">
                 Fuel Your Goals
               </span>
             </div>
@@ -247,25 +248,25 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Theme Toggle Button */}
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+            {/* Theme Toggle Button (Desktop & Tablet) */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:hover:border-slate-800 transition"
+              className="hidden sm:flex p-2 sm:p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:border-slate-800 transition"
               aria-label="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+              {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />}
             </button>
 
             {/* Wishlist Button */}
             <Link
               to="/wishlist"
-              className="relative p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:hover:border-slate-800 transition"
+              className="relative p-2 sm:p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:hover:border-slate-800 transition"
               aria-label="Wishlist"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
               {wishlistCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-rose-500 text-white text-[9px] sm:text-[10px] font-black rounded-full flex items-center justify-center animate-pulse">
                   {wishlistCount}
                 </span>
               )}
@@ -274,54 +275,107 @@ export const Navbar: React.FC = () => {
             {/* Shopping Cart Button */}
             <button
               onClick={openCart}
-              className="relative p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:hover:border-slate-800 transition"
+              className="relative p-2 sm:p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:hover:border-slate-800 transition"
               aria-label="Cart"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-brand-500 text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-neon">
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-brand-500 text-black text-[9px] sm:text-[10px] font-black rounded-full flex items-center justify-center shadow-neon">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            {/* User Account / Dropdown */}
+            {/* User Account / Dropdown (Desktop & Tablet) */}
             {isAuthenticated && user ? (
-              <div ref={userMenuRef} className="relative">
+              <div ref={userMenuRef} className="relative hidden md:block">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 p-1.5 rounded-full border border-gray-200 dark:border-slate-800 hover:border-brand-500 transition"
+                  className={`flex items-center gap-2 p-1 pl-2.5 rounded-full border transition ${
+                    isAdmin
+                      ? 'border-amber-500/50 bg-amber-500/10 text-amber-400 hover:border-amber-400'
+                      : 'border-gray-200 dark:border-slate-800 hover:border-brand-500'
+                  }`}
                 >
+                  <span className="text-[10px] font-black tracking-wide uppercase hidden lg:inline-block">
+                    {isAdmin ? '👑 Admin' : '🏋️ Customer'}
+                  </span>
                   <img
                     src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
                     alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-7 h-7 rounded-full object-cover"
                   />
                   <ChevronDown className="w-3.5 h-3.5 text-gray-400 mr-1" />
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 p-2 z-50">
+                  <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 p-2 z-50 animate-scale-up">
                     <div className="px-3 py-2 border-b border-gray-100 dark:border-slate-800">
                       <div className="font-bold text-sm text-gray-900 dark:text-white truncate">{user.name}</div>
                       <div className="text-xs text-gray-400 truncate">{user.email}</div>
-                      <span className={`inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                        isAdmin ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
-                      }`}>
-                        {user.role}
-                      </span>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className={`inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                          isAdmin ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
+                        }`}>
+                          {isAdmin ? '👑 STORE OWNER (ADMIN)' : '🏋️ ATHLETE USER (CUSTOMER)'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="py-1 space-y-1">
+                      {/* 1-Click Fast Switch Role Button */}
+                      <button
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          if (isAdmin) {
+                            await login('user@proteinvilla.demo', 'User@12345');
+                          } else {
+                            await login('owner@proteinvilla.demo', 'Owner@12345');
+                          }
+                          window.location.reload();
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-xl transition ${
+                          isAdmin
+                            ? 'bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20'
+                            : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <KeyRound className="w-3.5 h-3.5" />
+                          <span>{isAdmin ? 'Switch to Customer Demo' : 'Switch to Store Admin'}</span>
+                        </span>
+                        <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-black/30">
+                          {isAdmin ? 'USER' : 'ADMIN'}
+                        </span>
+                      </button>
+
                       {isAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500/10 rounded-xl transition"
-                        >
-                          <LayoutDashboard className="w-4 h-4" />
-                          <span>Admin Portal</span>
-                        </Link>
+                        <>
+                          <Link
+                            to="/admin"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500/10 rounded-xl transition"
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            <span>Admin Portal</span>
+                          </Link>
+                          <Link
+                            to="/admin/banks"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition"
+                          >
+                            <Building className="w-4 h-4" />
+                            <span>Bank & Settlement</span>
+                          </Link>
+                          <Link
+                            to="/admin/payment-gateways"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition"
+                          >
+                            <Zap className="w-4 h-4" />
+                            <span>Gateway Plugins</span>
+                          </Link>
+                        </>
                       )}
 
                       <Link
@@ -368,20 +422,20 @@ export const Navbar: React.FC = () => {
             ) : (
               <Link
                 to="/login"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs sm:text-sm font-bold hover:bg-brand-500 dark:hover:bg-brand-400 dark:hover:text-black transition shadow-sm"
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs sm:text-sm font-bold hover:bg-brand-500 dark:hover:bg-brand-400 dark:hover:text-black transition shadow-sm"
               >
                 <UserIcon className="w-4 h-4" />
                 <span>Sign In</span>
               </Link>
             )}
 
-            {/* Mobile Menu Hamburger */}
+            {/* Mobile Menu Hamburger - Always Accessible on Mobile/Tablet */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface"
+              className="lg:hidden p-2 sm:p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface border border-transparent hover:border-gray-200 dark:hover:border-slate-800 transition"
               aria-label="Open Menu"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6 text-brand-500" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
           </div>
         </div>
@@ -405,58 +459,194 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white dark:bg-dark-surface border-t border-gray-200 dark:border-slate-800 px-4 pt-3 pb-6 space-y-3 animate-slide-down">
-          <Link
-            to="/products"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-gray-800 dark:text-gray-200 hover:text-brand-500"
-          >
-            Shop All Products
-          </Link>
-          <Link
-            to="/protein-calculator"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-gray-800 dark:text-gray-200 hover:text-brand-500"
-          >
-            Protein Goal Calculator
-          </Link>
-          <Link
-            to="/fitness-calculator"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-gray-800 dark:text-gray-200 hover:text-brand-500"
-          >
-            BMI & Macro Calculator
-          </Link>
-          <Link
-            to="/protein-tracker"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-gray-800 dark:text-gray-200 hover:text-brand-500"
-          >
-            Daily Protein Tracker
-          </Link>
-          <Link
-            to="/supplement-stack"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-gray-800 dark:text-gray-200 hover:text-brand-500"
-          >
-            Supplement Stack Builder
-          </Link>
-          <Link
-            to="/verify"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-emerald-500 hover:text-emerald-400"
-          >
-            ✓ Authenticity Check (PV Verify)
-          </Link>
-          {isAdmin && (
-            <Link
-              to="/admin"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block py-2 text-sm font-bold text-amber-400"
-            >
-              👑 Admin Portal
-            </Link>
+        <div className="lg:hidden bg-white dark:bg-dark-surface border-t border-gray-200 dark:border-slate-800 px-4 pt-3 pb-8 space-y-4 animate-slide-down max-h-[80vh] overflow-y-auto shadow-2xl">
+          {/* Quick Role Switcher on Mobile */}
+          {isAuthenticated && user && (
+            <div className="p-3 bg-gray-50 dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img
+                  src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full object-cover shrink-0"
+                />
+                <div className="truncate">
+                  <div className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.name}</div>
+                  <span className="text-[10px] text-gray-400 block font-mono">{user.role}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={async () => {
+                  setIsMobileMenuOpen(false);
+                  if (isAdmin) {
+                    await login('user@proteinvilla.demo', 'User@12345');
+                  } else {
+                    await login('owner@proteinvilla.demo', 'Owner@12345');
+                  }
+                  window.location.reload();
+                }}
+                className="px-2.5 py-1.5 bg-brand-500 text-black text-[10px] font-black rounded-lg shrink-0 shadow-sm"
+              >
+                {isAdmin ? 'Switch to User' : 'Switch to Admin'}
+              </button>
+            </div>
           )}
+
+          <div className="space-y-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 px-2 block">
+              Store & Catalog
+            </span>
+            <Link
+              to="/products"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              <span>Shop All Supplements</span>
+              <ChevronDown className="w-4 h-4 -rotate-90 opacity-40" />
+            </Link>
+            <Link
+              to="/verify"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-emerald-500 hover:bg-emerald-500/10"
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Verify Authenticity (PV Verify)</span>
+              </span>
+              <ChevronDown className="w-4 h-4 -rotate-90 opacity-40" />
+            </Link>
+          </div>
+
+          <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-slate-800">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 px-2 block">
+              Interactive Tools & Calculators
+            </span>
+            <Link
+              to="/protein-calculator"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 p-2.5 rounded-xl text-sm font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              <Flame className="w-4 h-4 text-orange-500" />
+              <span>Protein Goal Calculator</span>
+            </Link>
+            <Link
+              to="/fitness-calculator"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 p-2.5 rounded-xl text-sm font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              <Calculator className="w-4 h-4 text-cyan-500" />
+              <span>BMI & Macro Split Calculator</span>
+            </Link>
+            <Link
+              to="/protein-tracker"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 p-2.5 rounded-xl text-sm font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              <Calendar className="w-4 h-4 text-emerald-500" />
+              <span>Daily Protein Tracker</span>
+            </Link>
+            <Link
+              to="/supplement-stack"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 p-2.5 rounded-xl text-sm font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              <Layers className="w-4 h-4 text-purple-400" />
+              <span>Supplement Stack Builder</span>
+            </Link>
+          </div>
+
+          {isAdmin && (
+            <div className="space-y-1 pt-2 border-t border-amber-500/20">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-2 block">
+                👑 Store Owner & Admin Portal
+              </span>
+              <Link
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-xl text-sm font-bold text-amber-400 hover:bg-amber-500/10"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Admin Dashboard</span>
+              </Link>
+              <Link
+                to="/admin/banks"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-xl text-sm font-bold text-emerald-400 hover:bg-emerald-500/10"
+              >
+                <Building className="w-4 h-4" />
+                <span>Bank & Settlement Priorities</span>
+              </Link>
+              <Link
+                to="/admin/payment-gateways"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-xl text-sm font-bold text-cyan-400 hover:bg-cyan-500/10"
+              >
+                <Zap className="w-4 h-4" />
+                <span>Payment Gateway Plugins</span>
+              </Link>
+              <Link
+                to="/admin/orders"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-xl text-sm font-bold text-gray-300 hover:bg-slate-800"
+              >
+                <Package className="w-4 h-4" />
+                <span>Orders Management</span>
+              </Link>
+            </div>
+          )}
+
+          {/* User Account & Theme Toggle on Mobile */}
+          <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-slate-800">
+            <div className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-slate-900 rounded-2xl">
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Theme Mode</span>
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-dark-surface border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white"
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Dark</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-slate-700" />
+                    <span>Light</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {isAuthenticated ? (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 p-2.5 bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-200 font-bold text-xs rounded-xl"
+                >
+                  <UserIcon className="w-4 h-4 text-brand-500" />
+                  <span>Profile</span>
+                </Link>
+                <Link
+                  to="/orders"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 p-2.5 bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-200 font-bold text-xs rounded-xl"
+                >
+                  <Package className="w-4 h-4 text-cyan-400" />
+                  <span>Orders</span>
+                </Link>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-3 bg-brand-500 text-black font-black text-xs rounded-xl shadow-neon"
+              >
+                <UserIcon className="w-4 h-4" />
+                <span>Sign In / Demo Login</span>
+              </Link>
+            )}
+          </div>
         </div>
       )}
     </header>

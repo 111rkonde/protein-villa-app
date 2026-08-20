@@ -129,6 +129,24 @@ export interface WishlistItem {
   product: Product;
 }
 
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
+  accountNumberFull?: string;
+  ifscCode: string;
+  upiVpa?: string;
+  effectiveVpa?: string;
+  directVpa?: string;
+  accountType: string;
+  isPrimary: boolean;
+  isActive: boolean;
+  branchName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type OrderStatus =
   | 'PENDING'
   | 'CONFIRMED'

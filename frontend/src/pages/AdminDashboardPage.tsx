@@ -103,6 +103,13 @@ export const AdminDashboardPage: React.FC = () => {
               <Truck className="w-4 h-4" />
               <span>Orders</span>
             </Link>
+            <Link
+              to="/admin/banks"
+              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition"
+            >
+              <Shield className="w-4 h-4" />
+              <span>Bank & Payouts</span>
+            </Link>
           </div>
         </div>
 
@@ -237,7 +244,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Quick Navigation Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link
             to="/admin/products"
             className="p-6 rounded-3xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-slate-800 shadow-xl hover:border-brand-500/50 transition group flex items-center justify-between"
@@ -275,6 +282,19 @@ export const AdminDashboardPage: React.FC = () => {
               <p className="text-xs text-gray-400">Create promo codes and discount percentage rules.</p>
             </div>
             <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-brand-500 group-hover:translate-x-1 transition-transform" />
+          </Link>
+
+          <Link
+            to="/admin/banks"
+            className="p-6 rounded-3xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-slate-800 shadow-xl hover:border-emerald-500/50 transition group flex items-center justify-between"
+          >
+            <div className="space-y-1">
+              <h4 className="font-bold text-base text-gray-900 dark:text-white group-hover:text-emerald-400">
+                Bank & Settlement Priority
+              </h4>
+              <p className="text-xs text-gray-400">Add bank accounts and set primary UPI settlement.</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-400 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>

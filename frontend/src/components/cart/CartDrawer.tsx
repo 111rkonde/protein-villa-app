@@ -2,10 +2,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, ShoppingBag, ArrowRight, Trash2, ShieldCheck, Truck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { CartItemCard } from './CartItemCard';
 import { CouponInput } from './CouponInput';
 
 export const CartDrawer: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const {
     isCartOpen,
     closeCart,
@@ -26,7 +30,16 @@ export const CartDrawer: React.FC = () => {
 
   const handleCheckoutClick = () => {
     closeCart();
-    navigate('/checkout');
+    if (!isAuthenticated) {
+      showToast(
+        'Please sign in or create a free athlete account to secure your order and tracking.',
+        'auth',
+        'Authentication Required'
+      );
+      navigate('/login', { state: { from: { pathname: '/checkout' } } });
+    } else {
+      navigate('/checkout');
+    }
   };
 
   const freeShippingPercent = Math.min(100, Math.round(((999 - amountForFreeShipping) / 999) * 100));
@@ -39,7 +52,7 @@ export const CartDrawer: React.FC = () => {
         className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
       />
 
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
         <div className="w-screen max-w-md bg-white dark:bg-dark-surface shadow-2xl flex flex-col border-l border-gray-200 dark:border-slate-800 animate-slide-left">
           {/* Header */}
           <div className="p-5 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">

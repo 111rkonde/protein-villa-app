@@ -8,8 +8,9 @@ const startServer = async () => {
     await prisma.$connect();
     console.log('✅ Connected to database successfully');
 
-    const server = app.listen(ENV.PORT, () => {
+    const server = app.listen(ENV.PORT, '0.0.0.0', () => {
       console.log(`🚀 Protein Villa Backend Server running on http://localhost:${ENV.PORT}`);
+      console.log(`🌐 Network access: http://0.0.0.0:${ENV.PORT}`);
       console.log(`📡 Environment: ${ENV.NODE_ENV}`);
       console.log(`🩺 Health check: http://localhost:${ENV.PORT}/api/health`);
     });

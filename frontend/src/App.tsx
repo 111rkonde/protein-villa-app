@@ -42,14 +42,17 @@ import { AdminProductsPage } from './pages/AdminProductsPage';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { AdminInventoryPage } from './pages/AdminInventoryPage';
 import { AdminCouponsPage } from './pages/AdminCouponsPage';
+import { AdminBankAccountsPage } from './pages/AdminBankAccountsPage';
+import { AdminPaymentGatewayPage } from './pages/AdminPaymentGatewayPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 
 // Protected Route Wrapper for Authenticated Users
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  if (isLoading) return null;
+  if (isLoading) return <LoadingSpinner message="Authenticating session..." fullPage />;
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -61,9 +64,12 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  if (isLoading) return null;
-  if (!isAuthenticated || user?.role !== 'ADMIN') {
+  if (isLoading) return <LoadingSpinner message="Verifying admin credentials..." fullPage />;
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  if (user?.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
@@ -87,7 +93,14 @@ export const App: React.FC = () => {
                         <Route path="/products" element={<ShopPage />} />
                         <Route path="/products/:id" element={<ProductDetailPage />} />
                         <Route path="/cart" element={<CartPage />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route
+                          path="/checkout"
+                          element={
+                            <ProtectedRoute>
+                              <CheckoutPage />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route path="/order-success/:id" element={<OrderSuccessPage />} />
                         <Route path="/orders/:id" element={<OrderTrackingPage />} />
                         <Route path="/track" element={<OrderTrackingPage />} />
@@ -163,6 +176,30 @@ export const App: React.FC = () => {
                           element={
                             <AdminRoute>
                               <AdminCouponsPage />
+                            </AdminRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/banks"
+                          element={
+                            <AdminRoute>
+                              <AdminBankAccountsPage />
+                            </AdminRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/payment-gateways"
+                          element={
+                            <AdminRoute>
+                              <AdminPaymentGatewayPage />
+                            </AdminRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/gateways"
+                          element={
+                            <AdminRoute>
+                              <AdminPaymentGatewayPage />
                             </AdminRoute>
                           }
                         />

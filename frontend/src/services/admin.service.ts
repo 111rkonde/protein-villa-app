@@ -75,4 +75,72 @@ export const adminService = {
     const res = await api.delete(`/coupons/${id}`);
     return res.data;
   },
+
+  // Bank Accounts & Payout Priority Management
+  async getBankAccounts() {
+    const res = await api.get('/admin/banks');
+    return res.data.data;
+  },
+
+  async addBankAccount(data: any) {
+    const res = await api.post('/admin/banks', data);
+    return res.data.data;
+  },
+
+  async setPrimaryBank(bankId: string) {
+    const res = await api.put(`/admin/banks/${bankId}/primary`);
+    return res.data.data;
+  },
+
+  async updateBankAccount(bankId: string, data: any) {
+    const res = await api.put(`/admin/banks/${bankId}`, data);
+    return res.data.data;
+  },
+
+  async deleteBankAccount(bankId: string) {
+    const res = await api.delete(`/admin/banks/${bankId}`);
+    return res.data.data;
+  },
+
+  async getActiveBank() {
+    const res = await api.get('/payments/active-bank');
+    return res.data.data;
+  },
+
+  // Payment Gateway Plugins Management
+  async getGatewayPlugins() {
+    const res = await api.get('/admin/gateway-plugins');
+    return res.data.data;
+  },
+
+  async updateGatewayPlugin(id: string, data: any) {
+    const res = await api.put(`/admin/gateway-plugins/${id}`, data);
+    return res.data.data;
+  },
+
+  async activateGatewayPlugin(id: string) {
+    const res = await api.put(`/admin/gateway-plugins/${id}/activate`);
+    return res.data.data;
+  },
+
+  async testGatewayPlugin(id: string) {
+    const res = await api.post(`/admin/gateway-plugins/${id}/test`);
+    return res.data.data;
+  },
+
+  async getActiveGateway() {
+    const res = await api.get('/payments/active-gateway');
+    return res.data.data;
+  },
+
+  async generateGatewayQr(amount: number, orderNumber?: string) {
+    const res = await api.post('/payments/gateway-qr/generate', { amount, orderNumber });
+    return res.data.data;
+  },
+
+  async verifyGatewayPayment(data: { utrNumber: string; amount: number; sessionId?: string }) {
+    const res = await api.post('/payments/gateway-qr/verify', data);
+    return res.data.data;
+  },
 };
+

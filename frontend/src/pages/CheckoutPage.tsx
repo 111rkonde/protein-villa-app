@@ -149,6 +149,7 @@ export const CheckoutPage: React.FC = () => {
               <PaymentStep
                 paymentMethod={paymentMethod}
                 setPaymentMethod={setPaymentMethod}
+                total={total}
                 onNext={() => setCurrentStep(4)}
                 onPrev={() => setCurrentStep(2)}
               />

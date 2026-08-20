@@ -2,10 +2,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, Trash2, Truck, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { CartItemCard } from '../components/cart/CartItemCard';
 import { CouponInput } from '../components/cart/CouponInput';
 
 export const CartPage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const {
     items,
     itemCount,
@@ -19,6 +23,19 @@ export const CartPage: React.FC = () => {
   } = useCart();
 
   const navigate = useNavigate();
+
+  const handleProceedToCheckout = () => {
+    if (!isAuthenticated) {
+      showToast(
+        'Please sign in or create a free athlete account to secure your order and tracking.',
+        'auth',
+        'Authentication Required'
+      );
+      navigate('/login', { state: { from: { pathname: '/checkout' } } });
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -142,7 +159,7 @@ export const CartPage: React.FC = () => {
             </div>
 
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={handleProceedToCheckout}
               className="w-full flex items-center justify-center gap-2 py-4 bg-brand-500 text-black font-black text-sm rounded-2xl hover:bg-brand-400 shadow-neon transition"
             >
               <span>Proceed to Checkout</span>

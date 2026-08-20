@@ -30,12 +30,13 @@ export const ScrollToTop: React.FC = () => {
     });
   };
 
-  if (!isVisible) return null;
+  // Do not render floating scroll button on checkout pages to avoid overlapping payment cards
+  if (!isVisible || pathname.startsWith('/checkout')) return null;
 
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-6 left-6 z-40 p-3 rounded-2xl bg-brand-500 text-black shadow-neon hover:scale-110 active:scale-95 transition-all duration-200"
+      className="fixed bottom-6 right-6 z-30 p-3 rounded-2xl bg-brand-500 text-black shadow-neon hover:scale-110 active:scale-95 transition-all duration-200"
       aria-label="Scroll to top"
     >
       <ArrowUp className="w-5 h-5 font-bold" />
