@@ -1,144 +1,259 @@
 import prisma from '../config/db';
+import { PaymentService } from './payment.service';
+
+export interface CreateOrderInput {
+  userId?: string;
+  guestEmail?: string;
+  items: Array<{
+    productId: string;
+    productName?: string;
+    productImage?: string;
+    size?: string;
+    flavor?: string;
+    unitPrice?: number; // Ignored by server — prices are fetched directly from DB
+    quantity: number;
+  }>;
+  shippingAddress: {
+    fullName: string;
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country?: string;
+    phone: string;
+  };
+  paymentMethod: 'COD' | 'CARD' | 'UPI';
+  couponCode?: string;
+  customerNotes?: string;
+  paymentDetails?: {
+    gatewayOrderId?: string;
+    gatewayPaymentId?: string;
+    gatewaySignature?: string;
+  };
+}
 
 export class OrderService {
-  static async createOrder(data: {
-    userId?: string;
-    guestEmail?: string;
-    items: Array<{
-      productId: string;
-      productName: string;
-      productImage?: string;
-      size: string;
-      flavor: string;
-      unitPrice: number;
-      quantity: number;
-    }>;
-    shippingAddress: any;
-    paymentMethod: string;
-    couponCode?: string;
-    customerNotes?: string;
-  }) {
-    // Calculate totals
-    let subtotal = 0;
-    for (const item of data.items) {
-      subtotal += item.unitPrice * item.quantity;
+  /**
+   * Secure, Atomic Order Creation with Zero-Trust Client Pricing
+   */
+  static async createOrder(data: CreateOrderInput) {
+    if (!data.items || data.items.length === 0) {
+      throw new Error('Order must contain at least one item.');
     }
 
-    let discount = 0;
-    if (data.couponCode) {
-      const coupon = await prisma.coupon.findUnique({
-        where: { code: data.couponCode.toUpperCase() },
-      });
+    // Execute atomic transaction for inventory check, pricing calculation, coupon application, and order creation
+    const order = await prisma.$transaction(async (tx) => {
+      let subtotal = 0;
+      const verifiedItems: Array<{
+        productId: string;
+        productName: string;
+        productImage: string | null;
+        size: string;
+        flavor: string;
+        unitPrice: number;
+        quantity: number;
+        totalPrice: number;
+      }> = [];
 
-      if (coupon && coupon.isActive) {
-        if (!coupon.minSpend || subtotal >= coupon.minSpend) {
-          discount = Math.round((subtotal * coupon.discountPercent) / 100);
-          if (coupon.maxDiscount && discount > coupon.maxDiscount) {
-            discount = coupon.maxDiscount;
+      // 1. SECURITY & PRICING: Fetch real product price and verify stock from DB
+      for (const item of data.items) {
+        if (!item.productId) {
+          throw new Error('Invalid product identifier in order item.');
+        }
+
+        const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product || !product.isAvailable) {
+          throw new Error(`Product "${product?.name || item.productId}" is currently unavailable.`);
+        }
+
+        if (product.stockQuantity < quantity) {
+          throw new Error(
+            `Insufficient stock for "${product.name}". Available: ${product.stockQuantity}, Requested: ${quantity}.`
+          );
+        }
+
+        // Calculate authentic unit price (ignoring any client-provided price)
+        const authenticUnitPrice =
+          product.discountPercent > 0
+            ? Math.round(product.price * (1 - product.discountPercent / 100))
+            : product.price;
+
+        const itemTotal = authenticUnitPrice * quantity;
+        subtotal += itemTotal;
+
+        const parsedImages = JSON.parse(product.images || '[]');
+        const productImage = item.productImage || parsedImages[0] || null;
+
+        verifiedItems.push({
+          productId: product.id,
+          productName: product.name,
+          productImage,
+          size: item.size || 'Standard',
+          flavor: item.flavor || 'Default',
+          unitPrice: authenticUnitPrice,
+          quantity,
+          totalPrice: itemTotal,
+        });
+
+        // 2. ATOMIC STOCK DEDUCTION
+        const newStock = product.stockQuantity - quantity;
+        await tx.product.update({
+          where: { id: product.id },
+          data: { stockQuantity: newStock },
+        });
+
+        // 3. INVENTORY LOGGING
+        await tx.inventoryLog.create({
+          data: {
+            productId: product.id,
+            changeType: 'ORDER',
+            quantityChanged: -quantity,
+            previousStock: product.stockQuantity,
+            newStock,
+            note: `Order checkout for product ${product.name}`,
+          },
+        });
+      }
+
+      // 4. COUPON VALIDATION & ATOMIC USAGE INCREMENT
+      let discount = 0;
+      let appliedCouponCode: string | null = null;
+
+      if (data.couponCode && data.couponCode.trim()) {
+        const normalizedCode = data.couponCode.trim().toUpperCase();
+        const coupon = await tx.coupon.findUnique({
+          where: { code: normalizedCode },
+        });
+
+        if (coupon && coupon.isActive) {
+          const isExpired = coupon.expiryDate && new Date(coupon.expiryDate) < new Date();
+          const limitReached = coupon.usageLimit && coupon.usageCount >= coupon.usageLimit;
+          const meetsMinSpend = !coupon.minSpend || subtotal >= coupon.minSpend;
+
+          if (!isExpired && !limitReached && meetsMinSpend) {
+            discount = Math.round((subtotal * coupon.discountPercent) / 100);
+            if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+              discount = coupon.maxDiscount;
+            }
+
+            appliedCouponCode = coupon.code;
+
+            // Increment coupon usage count atomically
+            await tx.coupon.update({
+              where: { id: coupon.id },
+              data: { usageCount: { increment: 1 } },
+            });
           }
-          // Increment coupon usage
-          await prisma.coupon.update({
-            where: { id: coupon.id },
-            data: { usageCount: { increment: 1 } },
-          });
         }
       }
-    }
 
-    const discountedSubtotal = subtotal - discount;
-    const shippingFee = discountedSubtotal >= 999 ? 0 : 99;
-    const tax = Math.round(discountedSubtotal * 0.05); // 5% GST
-    const total = discountedSubtotal + shippingFee + tax;
+      // 5. TAX, SHIPPING & TOTAL RE-CALCULATION
+      const discountedSubtotal = Math.max(0, subtotal - discount);
+      const shippingFee = subtotal === 0 || discountedSubtotal >= 999 ? 0 : 99;
+      const tax = Math.round(discountedSubtotal * 0.05); // 5% GST
+      const total = discountedSubtotal + shippingFee + tax;
 
-    const orderNumber = `PV-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const trackingNumber = `TRK-${Math.floor(10000000 + Math.random() * 90000000)}`;
+      // Generate unique tamper-proof order number and tracking code
+      const orderNumber = `PV-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const trackingNumber = `TRK-${Math.floor(10000000 + Math.random() * 90000000)}`;
 
-    const estDate = new Date();
-    estDate.setDate(estDate.getDate() + 3);
+      const estDate = new Date();
+      estDate.setDate(estDate.getDate() + 3);
 
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        userId: data.userId || null,
-        guestEmail: data.guestEmail || null,
-        subtotal,
-        discount,
-        couponCode: data.couponCode || null,
-        shippingFee,
-        tax,
-        total,
-        status: 'PENDING',
-        paymentMethod: data.paymentMethod || 'COD',
-        paymentStatus: data.paymentMethod === 'COD' ? 'PENDING' : 'PAID',
-        trackingNumber,
-        estimatedDelivery: estDate,
-        shippingAddress: JSON.stringify(data.shippingAddress),
-        customerNotes: data.customerNotes || null,
-        items: {
-          create: data.items.map((item) => ({
-            productId: item.productId,
-            productName: item.productName,
-            productImage: item.productImage || null,
-            size: item.size || 'Standard',
-            flavor: item.flavor || 'Default',
-            unitPrice: item.unitPrice,
-            quantity: item.quantity,
-            totalPrice: item.unitPrice * item.quantity,
-          })),
-        },
-      },
-      include: {
-        items: true,
-      },
-    });
+      const paymentMethod = data.paymentMethod || 'COD';
+      const isPrepaid = paymentMethod === 'CARD' || paymentMethod === 'UPI';
 
-    // Update product stock and inventory logs
-    for (const item of data.items) {
-      if (item.productId) {
-        const product = await prisma.product.findUnique({ where: { id: item.productId } });
-        if (product) {
-          const newStock = Math.max(0, product.stockQuantity - item.quantity);
-          await prisma.product.update({
-            where: { id: item.productId },
-            data: { stockQuantity: newStock },
-          });
-
-          await prisma.inventoryLog.create({
-            data: {
-              productId: item.productId,
-              changeType: 'ORDER',
-              quantityChanged: -item.quantity,
-              previousStock: product.stockQuantity,
-              newStock,
-              note: `Order ${orderNumber}`,
-            },
-          });
-        }
-      }
-    }
-
-    // Send user in-app notification if registered user
-    if (data.userId) {
-      await prisma.notification.create({
+      // 6. CREATE ORDER RECORD
+      const createdOrder = await tx.order.create({
         data: {
-          userId: data.userId,
-          title: 'Order Placed Successfully! 📦',
-          message: `Your order #${orderNumber} for ₹${total.toLocaleString('en-IN')} has been placed.`,
-          type: 'ORDER',
-          link: `/orders/${order.id}`,
+          orderNumber,
+          userId: data.userId || null,
+          guestEmail: data.guestEmail?.trim().toLowerCase() || null,
+          subtotal,
+          discount,
+          couponCode: appliedCouponCode,
+          shippingFee,
+          tax,
+          total,
+          status: 'PENDING',
+          paymentMethod,
+          paymentStatus: isPrepaid ? 'PAID' : 'PENDING',
+          trackingNumber,
+          estimatedDelivery: estDate,
+          shippingAddress: JSON.stringify(data.shippingAddress),
+          customerNotes: data.customerNotes?.trim() || null,
+          items: {
+            create: verifiedItems.map((item) => ({
+              productId: item.productId,
+              productName: item.productName,
+              productImage: item.productImage,
+              size: item.size,
+              flavor: item.flavor,
+              unitPrice: item.unitPrice,
+              quantity: item.quantity,
+              totalPrice: item.totalPrice,
+            })),
+          },
+        },
+        include: {
+          items: true,
         },
       });
 
-      // Clear user cart
-      const cart = await prisma.cart.findUnique({ where: { userId: data.userId } });
-      if (cart) {
-        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      // 7. RECORD PAYMENT RECEIPT / TRANSACTION
+      if (isPrepaid) {
+        const paymentIntent = PaymentService.createPaymentIntent({
+          amount: total,
+          orderNumber,
+          paymentMethod,
+          userId: data.userId,
+          customerEmail: data.guestEmail,
+        });
+
+        await tx.payment.create({
+          data: {
+            orderId: createdOrder.id,
+            userId: data.userId || null,
+            amount: total,
+            currency: 'INR',
+            provider: paymentMethod === 'UPI' ? 'UPI_GATEWAY' : 'CARD_GATEWAY',
+            method: paymentMethod,
+            status: 'COMPLETED',
+            transactionId: paymentIntent.gatewayOrderId,
+            paymentSignature: paymentIntent.signature,
+          },
+        });
       }
-    }
+
+      // 8. CLEAR USER CART & DISPATCH IN-APP NOTIFICATION
+      if (data.userId) {
+        await tx.notification.create({
+          data: {
+            userId: data.userId,
+            title: 'Order Placed Successfully! 📦',
+            message: `Your order #${orderNumber} for ₹${total.toLocaleString('en-IN')} has been placed.`,
+            type: 'ORDER',
+            link: `/orders/${createdOrder.id}`,
+          },
+        });
+
+        const cart = await tx.cart.findUnique({ where: { userId: data.userId } });
+        if (cart) {
+          await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+        }
+      }
+
+      return createdOrder;
+    });
 
     return {
       ...order,
-      shippingAddress: JSON.parse(order.shippingAddress),
+      shippingAddress: JSON.parse(order.shippingAddress || '{}'),
     };
   }
 
@@ -147,6 +262,7 @@ export class OrderService {
       where: { userId },
       include: {
         items: true,
+        payments: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -157,13 +273,14 @@ export class OrderService {
     }));
   }
 
-  static async getOrderById(orderIdOrNumber: string) {
+  static async getOrderById(orderIdOrNumber: string, requestingUserId?: string, userRole?: string) {
     const order = await prisma.order.findFirst({
       where: {
         OR: [{ id: orderIdOrNumber }, { orderNumber: orderIdOrNumber }],
       },
       include: {
         items: true,
+        payments: true,
         user: {
           select: { id: true, name: true, email: true, phone: true },
         },
@@ -174,6 +291,11 @@ export class OrderService {
       throw new Error('Order not found.');
     }
 
+    // SECURITY: If requesting user is not ADMIN, verify they own the order
+    if (userRole !== 'ADMIN' && requestingUserId && order.userId && order.userId !== requestingUserId) {
+      throw new Error('Unauthorized access to this order.');
+    }
+
     return {
       ...order,
       shippingAddress: JSON.parse(order.shippingAddress || '{}'),
@@ -181,17 +303,29 @@ export class OrderService {
   }
 
   static async trackOrderByNumber(orderNumber: string) {
+    const cleanCode = (orderNumber || '').trim();
+    if (!cleanCode) {
+      throw new Error('Order identifier is required for tracking.');
+    }
+
     const order = await prisma.order.findFirst({
       where: {
-        OR: [{ orderNumber: orderNumber.trim() }, { trackingNumber: orderNumber.trim() }],
+        OR: [
+          { id: cleanCode },
+          { orderNumber: cleanCode },
+          { orderNumber: cleanCode.toUpperCase() },
+          { trackingNumber: cleanCode },
+          { trackingNumber: cleanCode.toUpperCase() },
+        ],
       },
       include: {
         items: true,
+        payments: true,
       },
     });
 
     if (!order) {
-      throw new Error('Order not found with provided tracking or order number.');
+      throw new Error(`No order found matching "${cleanCode}". Please verify your Order # or Tracking Code.`);
     }
 
     const statuses = [
@@ -210,7 +344,15 @@ export class OrderService {
       ...step,
       completed: activeStep >= idx,
       current: activeStep === idx,
-      date: activeStep >= idx ? new Date(order.createdAt.getTime() + idx * 86400000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : null,
+      date:
+        activeStep >= idx
+          ? new Date(order.createdAt.getTime() + idx * 86400000).toLocaleDateString('en-IN', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : null,
     }));
 
     return {
@@ -259,6 +401,7 @@ export class OrderService {
         include: {
           user: { select: { id: true, name: true, email: true } },
           items: true,
+          payments: true,
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -294,7 +437,7 @@ export class OrderService {
     const updated = await prisma.order.update({
       where: { id: orderId },
       data: updateData,
-      include: { items: true },
+      include: { items: true, payments: true },
     });
 
     // Notify user

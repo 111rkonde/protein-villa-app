@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Search, Eye, CheckCircle2, AlertCircle, Clock, Package } from 'lucide-react';
+import { Truck, Search, Eye, CheckCircle2, AlertCircle, Clock, Package, Printer, FileText } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { Order } from '../types';
 import { useToast } from '../context/ToastContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { OrderInvoiceModal } from '../components/admin/OrderInvoiceModal';
 
 export const AdminOrdersPage: React.FC = () => {
   const { showToast } = useToast();
@@ -13,6 +14,10 @@ export const AdminOrdersPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [search, setSearch] = useState<string>('');
 
+  // Invoice Print Modal State
+  const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState<boolean>(false);
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -20,7 +25,8 @@ export const AdminOrdersPage: React.FC = () => {
         status: statusFilter || undefined,
         limit: 50,
       });
-      setOrders(res.data || []);
+      const orderList = Array.isArray(res) ? res : (res.data || res.orders || []);
+      setOrders(orderList);
     } catch (error) {
       console.error('Failed to load admin orders:', error);
     } finally {
@@ -40,6 +46,11 @@ export const AdminOrdersPage: React.FC = () => {
     } catch (error) {
       showToast('Failed to update order status.', 'error');
     }
+  };
+
+  const handleOpenInvoice = (order: Order) => {
+    setSelectedOrderForInvoice(order);
+    setIsInvoiceModalOpen(true);
   };
 
   const filteredOrders = orders.filter(
@@ -101,7 +112,8 @@ export const AdminOrdersPage: React.FC = () => {
                   <th className="p-4 font-bold text-gray-400 uppercase">Items</th>
                   <th className="p-4 font-bold text-gray-400 uppercase">Total (₹)</th>
                   <th className="p-4 font-bold text-gray-400 uppercase">Payment</th>
-                  <th className="p-4 font-bold text-gray-400 uppercase">Status & Actions</th>
+                  <th className="p-4 font-bold text-gray-400 uppercase">Status & Logistics</th>
+                  <th className="p-4 font-bold text-gray-400 uppercase text-right">Packing Slip & Bill</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -166,12 +178,31 @@ export const AdminOrdersPage: React.FC = () => {
                         <option value="CANCELLED" className="bg-slate-900 text-white">Cancelled</option>
                       </select>
                     </td>
+
+                    {/* Print / Download Invoice Action */}
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => handleOpenInvoice(o)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-black text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl border border-gray-200 dark:border-slate-700 transition shadow-sm group"
+                        title="Print Tax Invoice & Shipping Packing Slip"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-brand-500 group-hover:text-black transition" />
+                        <span>Print Bill</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+
+        {/* Dedicated Tax Invoice & Warehouse Packing Slip Modal */}
+        <OrderInvoiceModal
+          order={selectedOrderForInvoice}
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+        />
       </div>
     </div>
   );

@@ -13,7 +13,10 @@ export const validateRequest = (schema: AnyZodObject) => {
           field: e.path.join('.'),
           message: e.message,
         }));
-        sendError(res, 'Validation failed. Please check your inputs.', 400, issues);
+        const detailedMessage = issues
+          .map((i) => (i.field ? `${i.field}: ${i.message}` : i.message))
+          .join(', ');
+        sendError(res, `Validation failed: ${detailedMessage}`, 400, issues);
         return;
       }
       sendError(res, 'Invalid request data.', 400, error);

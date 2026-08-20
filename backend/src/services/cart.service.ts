@@ -220,13 +220,23 @@ export class CartService {
     return this.getOrCreateCart(params.userId, params.sessionId);
   }
 
-  static async removeItem(itemId: string) {
-    await prisma.cartItem.delete({ where: { id: itemId } });
-    return { message: 'Item removed from cart.' };
+  static async removeItem(
+    params: { userId?: string; sessionId?: string },
+    itemId: string
+  ) {
+    const cart = await this.getOrCreateCart(params.userId, params.sessionId);
+    await prisma.cartItem.deleteMany({
+      where: {
+        id: itemId,
+        cartId: cart.id,
+      },
+    });
+    return this.getOrCreateCart(params.userId, params.sessionId);
   }
 
-  static async clearCart(cartId: string) {
-    await prisma.cartItem.deleteMany({ where: { cartId } });
+  static async clearCart(params: { userId?: string; sessionId?: string }) {
+    const cart = await this.getOrCreateCart(params.userId, params.sessionId);
+    await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
     return { message: 'Cart cleared successfully.' };
   }
 }

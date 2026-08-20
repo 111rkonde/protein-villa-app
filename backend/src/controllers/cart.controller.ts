@@ -49,8 +49,12 @@ export class CartController {
   static async removeItem(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const result = await CartService.removeItem(id);
-      sendSuccess(res, result);
+      const sessionId = (req.headers['x-session-id'] as string) || (req.query.sessionId as string);
+      const result = await CartService.removeItem(
+        { userId: req.user?.userId, sessionId },
+        id
+      );
+      sendSuccess(res, result, 'Item removed from cart.');
     } catch (error: any) {
       sendError(res, error.message, 400);
     }
@@ -58,9 +62,12 @@ export class CartController {
 
   static async clearCart(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { cartId } = req.body;
-      const result = await CartService.clearCart(cartId);
-      sendSuccess(res, result);
+      const sessionId = (req.headers['x-session-id'] as string) || (req.query.sessionId as string);
+      const result = await CartService.clearCart({
+        userId: req.user?.userId,
+        sessionId,
+      });
+      sendSuccess(res, result, 'Cart cleared successfully.');
     } catch (error: any) {
       sendError(res, error.message, 400);
     }

@@ -74,7 +74,7 @@ export const CheckoutPage: React.FC = () => {
       const order = await orderService.createOrder(orderData);
       await clearCart();
       showToast('🎉 Order placed successfully!', 'success');
-      navigate(`/order-success/${order.id || order.orderNumber}`);
+      navigate(`/order-success/${order.orderNumber || order.id}`);
     } catch (error: any) {
       showToast(error.response?.data?.message || 'Failed to place order.', 'error');
     } finally {

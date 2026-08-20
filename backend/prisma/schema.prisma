@@ -192,6 +192,24 @@ model Order {
 
   user              User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   items             OrderItem[]
+  payments          Payment[]
+}
+
+model Payment {
+  id               String   @id @default(uuid())
+  orderId          String
+  userId           String?
+  amount           Float
+  currency         String   @default("INR")
+  provider         String   @default("CARD_GATEWAY")
+  method           String   @default("CARD") // CARD | UPI | COD
+  status           String   @default("COMPLETED") // PENDING | COMPLETED | FAILED
+  transactionId    String?
+  paymentSignature String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {
