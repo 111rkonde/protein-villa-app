@@ -41,3 +41,17 @@ Thumbs.db
 # Prisma
 backend/prisma/dev.db
 backend/prisma/dev.db-journal
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform/environments/*.tfvars
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
